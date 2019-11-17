@@ -8,55 +8,53 @@ use ieee.numeric_std.all;
 entity Led_Display is
     Port ( 
 				i_CLK 				: in STD_LOGIC;
-				i_RST 				: in STD_LOGIC;
+				i_RST 				: in STD_LOGIC; -- BOTAO 
+				-- ENTRADAS VINDA DA MAQUINA SWITCH BOTAO :
+				i_CAFE  				: in STD_LOGIC; -- SWITCH
+				i_CAFE_LEITE		: in STD_LOGIC; -- SWITCH
+				i_MOCHA				: in STD_LOGIC; -- SWITCH
 				
-				i_CAFE  				: in STD_LOGIC;
-				i_CAFE_LEITE		: in STD_LOGIC;
-				i_MOCHA				: in STD_LOGIC;
+				i_TAMANHO			: in STD_LOGIC; -- SWITCH
+				i_ACUCAR				: in STD_LOGIC; -- SWITCH
+				i_PREPARO			: in STD_LOGIC; -- BOTAO
 				
-				i_TAMANHO			: in STD_LOGIC;
-				i_ACUCAR				: in STD_LOGIC;
-				i_PREPARO			: in STD_LOGIC;
-				i_REPOSICAO			: in STD_LOGIC;
+				i_REPOSICAO			: in STD_LOGIC; -- BOTAO SINAL o_REPOSICAO
+				-- SAIDAS PARA OS LEDS 
+				o_CAFE  				: out STD_LOGIC; -- LED
+				o_CAFE_LEITE		: out STD_LOGIC; -- LED
+				o_MOCHA				: out STD_LOGIC; -- LED
+				o_TAMANHO			: out STD_LOGIC; -- LED
+				o_ACUCAR				: out STD_LOGIC; -- LED
 				
+				o_PREPARANDO		: out STD_LOGIC; -- LED PISCANDO 
+				o_REPOSICAO			: out STD_LOGIC; -- LED
+				o_FIM_PREPARO		: out STD_LOGIC; -- SINAL
 				
-				o_CAFE  				: out STD_LOGIC;
-				o_CAFE_LEITE		: out STD_LOGIC;
-				o_MOCHA				: out STD_LOGIC;
-				o_TAMANHO			: out STD_LOGIC;
-				o_ACUCAR				: out STD_LOGIC;
+				-- SAIDAS PARA A MAQUINA SWITCH BOTAO
+				o_PREPARO_DONE		: out STD_LOGIC; -- SINAL
+				o_REPOSICAO_DONE	: out STD_LOGIC; -- SINAL i_REPOSICAO Leitor_sw_bt
+				o_TIMER_DONE		: out STD_LOGIC; -- SINAL
 				
-				o_PREPARANDO		: out STD_LOGIC;
-				o_REPOSICAO			: out STD_LOGIC;
-				o_FIM_PREPARO		: out STD_LOGIC;
+				-- SAIDAS PARA O TIMER
+				o_SECONDS			: out INTEGER; -- i_SEC do Timer
+				o_TIMER_ENABLE		: out STD_LOGIC; -- i_EN do Timer
+				i_TIMER_DONE		: in STD_LOGIC; -- o_DONE do Timer
 				
-				o_PREPARO_DONE		: out STD_LOGIC;
-				o_REPOSICAO_DONE	: out STD_LOGIC;
-				o_TIMER_DONE		: out STD_LOGIC;
-				
-				
-				o_SECONDS			: out INTEGER;
-				o_TIMER_ENABLE		: out STD_LOGIC;
-				i_TIMER_DONE		: in STD_LOGIC;
-				
-				o_DISPLAY_DATA		: out STD_LOGIC_VECTOR (3 DOWNTO 0);
-				o_DISPLAY_ENABLE	: out STD_LOGIC
+				-- SAIDAS PARA O DISPLAY
+				o_DISPLAY_DATA		: out STD_LOGIC_VECTOR (3 DOWNTO 0); -- i_data do Display
+				o_DISPLAY_ENABLE	: out STD_LOGIC -- i_enable do Display
 				
 								
 	 );
-end MAQUINA_LEDS;
+end Led_Display;
 
 
 architecture Behavioral of Led_Display is
 	
 	TYPE w_state_type is (st_IDLE, st_REPOSICAO, st_PREPARO, st_CALCTIME);
-
-	ATTRIBUTE syn_encoding : string;
-	ATTRIBUTE syn_encoding OF w_state_type : TYPE IS "safe";
 	
 	SIGNAL w_state				: w_state_type;
 	
-	SIGNAL w_control_count  : STD_LOGIC_VECTOR(3 DOWNTO 0);
 --	SIGNAL w_pressed			: STD_LOGIC;
 --	SIGNAL w_tempAdd			: STD_LOGIC_VECTOR(p_ADD-1 DOWNTO 0);
 --	SIGNAL w_control_count  : STD_LOGIC_VECTOR(3 DOWNTO 0);
@@ -73,7 +71,7 @@ o_PREPARANDO <= i_PREPARO;
 o_REPOSICAO <= i_REPOSICAO;
 
 
-U_MACHINE : PROCESS(i_CLK, i_RST)
+U_LED_DISPLAY : PROCESS(i_CLK, i_RST)
 	BEGIN
 		IF(i_RST = '1') THEN
 			w_state <= st_IDLE;
@@ -83,9 +81,9 @@ U_MACHINE : PROCESS(i_CLK, i_RST)
 			CASE w_state IS
 				WHEN st_IDLE =>
 					o_REPOSICAO_DONE <= '0';
-					IF(i_REPOSICAO = '1') THEN
+					IF(i_REPOSICAO = '1') THEN -- SINAL VINDO DA SWITCH_BOTAO
 						w_state <= st_REPOSICAO;
-					ELSIF(i_PREPARO = '1') THEN
+					ELSIF(i_PREPARO = '1') THEN -- SINAL VINDO DA SWITCH_BOTAO
 						w_state <= st_CALCTIME;
 					END IF;
 					
@@ -94,7 +92,7 @@ U_MACHINE : PROCESS(i_CLK, i_RST)
 					o_TIMER_ENABLE <= '1';
 					IF(i_TIMER_DONE = '1') THEN
 						o_TIMER_ENABLE <= '0';
-						o_REPOSICAO_DONE <= '1';
+						o_REPOSICAO_DONE <= '1'; -- SINAL DE SAIDA PARA SWITCH_BOTAO
 						w_state <= st_IDLE;
 					END IF;
 					

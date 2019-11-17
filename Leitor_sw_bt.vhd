@@ -14,27 +14,28 @@ entity Leitor_sw_bt is
 		i_CLK:				in  STD_LOGIC;
 		i_RST:				in  STD_LOGIC;
 				-- SWITCHS E BOTAO PREPARO --
-		i_CAFE:				in STD_LOGIC;
-		i_CAFE_LEITE:		in STD_LOGIC;
-		i_MOCHA: 			in STD_LOGIC;
-		i_TAMANHO: 			in STD_LOGIC;
-		i_ACUCAR: 			in STD_LOGIC;
-		i_PREPARO: 			in STD_LOGIC;
+		i_CAFE:				in STD_LOGIC; -- SWITCH
+		i_CAFE_LEITE:		in STD_LOGIC; -- SWITCH
+		i_MOCHA: 			in STD_LOGIC; -- SWITCH
+		i_TAMANHO: 			in STD_LOGIC; -- SWITCH
+		i_ACUCAR: 			in STD_LOGIC; -- SWITCH
+		i_PREPARO: 			in STD_LOGIC; -- BOTAO
 				-- "SENSORES" em processo de criacao kkkk
-		i_AGUA: 				in STD_LOGIC;
-		i_TEMP: 				in STD_LOGIC;
+		i_AGUA: 				in STD_LOGIC; -- SINAL
+		i_TEMP: 				in STD_LOGIC; -- SINAL
 				-- HANDSHAKE --
-		i_DONE:				in STD_LOGIC;
+		i_DONE:				in STD_LOGIC; --SINAL
 			-- BOTAO REPOSICAO
-		i_REPOSICAO:		in STD_LOGIC;
+		i_REPOSICAO:		in STD_LOGIC; -- BOTAO DE REPOSICAO
+		i_REPOSICAO_DONE 	in STD_LOGIC; -- SINAL DE REPOSICAO TERMINADA
 				-- SAIDAS --
-		o_CAFE:				out  STD_LOGIC;
-		o_CAFE_LEITE:		out  STD_LOGIC;
-		o_MOCHA:				out  STD_LOGIC;
-		o_TAMANHO:			out STD_LOGIC;
-		o_ACUCAR:			out STD_LOGIC;
-		o_PREPARO:			out STD_LOGIC;
-		o_REPOSICAO:		out STD_LOGIC
+		o_CAFE:				out  STD_LOGIC; -- SINAL
+		o_CAFE_LEITE:		out  STD_LOGIC; -- SINAL
+		o_MOCHA:				out  STD_LOGIC; -- SINAL
+		o_TAMANHO:			out STD_LOGIC; -- SINAL
+		o_ACUCAR:			out STD_LOGIC; -- SINAL
+		o_PREPARO:			out STD_LOGIC; -- SINAL
+		o_REPOSICAO:		out STD_LOGIC	-- i_REPOSICAO do Led_Display
 	 );
 end Leitor_sw_bt;
 
@@ -154,6 +155,7 @@ Begin
 								 o_REPOSICAO <= '1';
 								 
 								 IF(i_REPOSICAO = '1') THEN
+									st_WAIT;
 									o_REPOSICAO <= '0';
 									w_state <= st_INIT;
 								 ELSE
@@ -234,7 +236,9 @@ Begin
 						w_state <= st_WAIT;
 						--ESPERANDO -------------------------------------------------------------------------------------------
 					WHEN st_WAIT =>
-						IF (i_DONE = '1') THEN
+						IF (i_DONE = '1' or i_REPOSICAO_DONE = '1') THEN
+--							i_DONE = '0';
+--							i_REPOSICAO_DONE = '0';
 							w_state <= st_IDLE;
 						ELSE
 							w_state <= st_WAIT;
