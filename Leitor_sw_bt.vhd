@@ -27,7 +27,7 @@ entity Leitor_sw_bt is
 		i_DONE:				in STD_LOGIC; --SINAL
 			-- BOTAO REPOSICAO
 		i_REPOSICAO:		in STD_LOGIC; -- BOTAO DE REPOSICAO
-		i_REPOSICAO_DONE 	in STD_LOGIC; -- SINAL DE REPOSICAO TERMINADA
+		i_REPOSICAO_DONE :	in STD_LOGIC; -- SINAL DE REPOSICAO TERMINADA
 				-- SAIDAS --
 		o_CAFE:				out  STD_LOGIC; -- SINAL
 		o_CAFE_LEITE:		out  STD_LOGIC; -- SINAL
@@ -99,6 +99,10 @@ Begin
 				CASE w_state IS
 					
 					WHEN st_INIT =>
+					
+						o_PREPARO <= '0'; -- nao vai preparar nada
+						o_REPOSICAO <= '0'; -- terminou a repOSICAO
+						
 						-- QUANTIDADES REPOSTAS
 						q_CAFE		<=10;		--qntd
 						q_LEITE		<=10;		--qntd
@@ -112,6 +116,8 @@ Begin
 						w_state <= st_UPDATE_MEMORIA;
 					----------------------------------------------------------------------	
 					WHEN st_IDLE =>
+					
+						o_PREPARO <= '0'; -- terminou o cafe anterior
 						
 						o_CAFE <= i_CAFE;
 						o_CAFE_LEITE <= i_CAFE_LEITE; 
@@ -153,14 +159,8 @@ Begin
 								 (q_CHOCO < 2 ) ) THEN
 								 
 								 o_REPOSICAO <= '1';
+								 w_state <= st_WAIT;
 								 
-								 IF(i_REPOSICAO = '1') THEN
-									st_WAIT;
-									o_REPOSICAO <= '0';
-									w_state <= st_INIT;
-								 ELSE
-									w_state <= st_CHECK_INGREDIENTES;
-								 END IF;
 							ELSE
 								w_ADDRESS_RAM <= "00";
 								w_RAM_ENABLE <= '0';
@@ -194,10 +194,10 @@ Begin
 						ELSE
 							w_RAM_ENABLE <= '0';
 							w_RAM_WRITE <= '0';
-							IF(control = '1') THEN
+							IF(control = '1') THEN -- SE VEIO DO INIT
 								control <= '0';
 								w_state <= st_IDLE;
-							ELSIF (control = '0') THEN
+							ELSIF (control = '0') THEN -- SE VEIO DO FLUXO NORMAL DA CAFETEIRA
 								w_state <= st_PREPARO;
 							END IF;
 						END IF;
@@ -208,6 +208,9 @@ Begin
 						w_state <= st_UPDATE_MEMORIA;
 						-- PREPARO ------------------------------------------------------------------------------------------
 					WHEN st_PREPARO =>
+					
+						o_PREPARO <= '1';
+					
 						IF(i_TAMANHO = '0') THEN
 						
 							IF(i_CAFE = '0' AND i_CAFE_LEITE = '0' AND i_MOCHA = '1') THEN -- mochaccino
@@ -236,10 +239,15 @@ Begin
 						w_state <= st_WAIT;
 						--ESPERANDO -------------------------------------------------------------------------------------------
 					WHEN st_WAIT =>
-						IF (i_DONE = '1' or i_REPOSICAO_DONE = '1') THEN
---							i_DONE = '0';
---							i_REPOSICAO_DONE = '0';
+						
+						IF (i_DONE = '1') THEN
+							
 							w_state <= st_IDLE;
+							
+						ELSIF (i_REPOSICAO_DONE = '1') THEN
+							
+							w_state <= st_INIT;
+						
 						ELSE
 							w_state <= st_WAIT;
 						END IF;

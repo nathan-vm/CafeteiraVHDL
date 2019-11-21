@@ -16,7 +16,7 @@ end Timer;
 
 architecture Behavioral of Timer is
 	signal w_cont_sec : integer := 0;
-	signal w_DONE: integer := 0;
+	signal w_DONE: std_logic;
 	signal w_cont: std_logic_vector (27 downto 0) := (OTHERS =>'0');
 	
 	begin
@@ -26,8 +26,8 @@ architecture Behavioral of Timer is
 			begin
 				if(i_RST = '1')then
 					w_cont <= (others => '0');
-					w_cont_sec <= '0';
-					w_DONE <= '0'
+					w_cont_sec <= 0;
+					w_DONE <= '0';
 				elsif(i_EN = '1') then
 					if rising_edge(i_CLK) then
 						w_cont <= w_cont+ 1;
@@ -37,7 +37,7 @@ architecture Behavioral of Timer is
 								if(w_cont_sec = i_SEC) then
 									w_DONE <= '1';
 									w_cont <= (others => '0');
-									w_cont_sec <= '1';
+									w_cont_sec <= 0;
 								else
 									w_DONE <= '0';
 								end if;
@@ -47,7 +47,7 @@ architecture Behavioral of Timer is
 					end if;
 				else
 					w_cont <= (others => '0');
-					w_cont_sec <= '0';
+					w_cont_sec <= 0;
 					w_DONE <= '0';
 				end if;
 		end process;
