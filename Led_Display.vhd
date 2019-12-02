@@ -28,17 +28,15 @@ entity Led_Display is
 				
 				o_PREPARANDO		: out STD_LOGIC; -- LED PISCANDO 
 				o_REPOSICAO			: out STD_LOGIC; -- LED
-				o_FIM_PREPARO		: out STD_LOGIC; -- SINAL
 				
 				-- SAIDAS PARA A MAQUINA SWITCH BOTAO
 				o_PREPARO_DONE		: out STD_LOGIC; -- SINAL
 				o_REPOSICAO_DONE	: out STD_LOGIC; -- SINAL i_REPOSICAO Leitor_sw_bt
-				o_TIMER_DONE		: out STD_LOGIC; -- SINAL
 				
-				w_DISPLAY_1 : out STD_LOGIC_VECTOR (7 DOWNTO 0);
-				w_DISPLAY_2 : out STD_LOGIC_VECTOR (7 DOWNTO 0);
-				w_DISPLAY_3 : out STD_LOGIC_VECTOR (7 DOWNTO 0);
-				w_DISPLAY_4 : out STD_LOGIC_VECTOR (7 DOWNTO 0)
+				o_DISPLAY_1 : out STD_LOGIC_VECTOR (7 DOWNTO 0);
+				o_DISPLAY_2 : out STD_LOGIC_VECTOR (7 DOWNTO 0);
+				o_DISPLAY_3 : out STD_LOGIC_VECTOR (7 DOWNTO 0);
+				o_DISPLAY_4 : out STD_LOGIC_VECTOR (7 DOWNTO 0)
 	 );
 end Led_Display;
 
@@ -78,10 +76,6 @@ architecture Behavioral of Led_Display is
 	-- SINAIS DISPLAY
 	SIGNAL w_DATA_DISPLAY : STD_LOGIC_VECTOR (3 DOWNTO 0);
 	SIGNAL w_EN_DISPLAY : STD_LOGIC;
---	SIGNAL w_DISPLAY_1 : STD_LOGIC_VECTOR (7 DOWNTO 0);
---	SIGNAL w_DISPLAY_2 : STD_LOGIC_VECTOR (7 DOWNTO 0);
---	SIGNAL w_DISPLAY_3 : STD_LOGIC_VECTOR (7 DOWNTO 0);
---	SIGNAL w_DISPLAY_4 : STD_LOGIC_VECTOR (7 DOWNTO 0);
 	
 	-- CONTADOR DE CLOCKS
 	SIGNAL w_control_count : std_LOGIC_VECTOR (3 downto 0);
@@ -95,6 +89,7 @@ o_TAMANHO <= i_TAMANHO;
 o_ACUCAR <= i_ACUCAR;
 o_PREPARANDO <= i_PREPARO;
 o_REPOSICAO <= i_REPOSICAO;
+
 	-- PORT MAP TIMER --
 U_TIMER : TIMER
 	port map (
@@ -109,10 +104,10 @@ U_DISPLAY : DISPLAY
 	Port map ( 
 			i_data 			=> w_DATA_DISPLAY,
 			i_enable			=> w_EN_DISPLAY,
-			o_display1 		=> w_DISPLAY_1,
-			o_display2 		=> w_DISPLAY_2,
-			o_display3 		=> w_DISPLAY_3,
-			o_display4 		=> w_DISPLAY_4
+			o_display1 		=> o_DISPLAY_1,
+			o_display2 		=> o_DISPLAY_2,
+			o_display3 		=> o_DISPLAY_3,
+			o_display4 		=> o_DISPLAY_4
 	 );
 	-- PROCESSO MAQUINA 
 U_LED_DISPLAY : PROCESS(i_CLK, i_RST)
@@ -171,19 +166,19 @@ U_LED_DISPLAY : PROCESS(i_CLK, i_RST)
 					w_control_count <= "0000";
 					IF(i_TAMANHO = '1') THEN
 						IF(i_CAFE = '1') THEN
-							w_SEC_TIMER <= 11 + (1 - to_integer(unsigned'('0' & i_ACUCAR)));
+							w_SEC_TIMER <= 10;
 						ELSIF(i_CAFE_LEITE = '1') THEN
-							w_SEC_TIMER <= 12 + (1 - to_integer(unsigned'('0' & i_ACUCAR)));
+							w_SEC_TIMER <= 10;
 						ELSE
-							w_SEC_TIMER <= 13 + (1 - to_integer(unsigned'('0' & i_ACUCAR)));
+							w_SEC_TIMER <= 10;
 						END IF;
 					ELSE
 						IF(i_CAFE = '1') THEN
-							w_SEC_TIMER <= 6 + (1 - to_integer(unsigned'('0' & i_ACUCAR)));
+							w_SEC_TIMER <= 5;
 						ELSIF(i_CAFE_LEITE = '1') THEN
-							w_SEC_TIMER <= 7 + (1 - to_integer(unsigned'('0' & i_ACUCAR)));
+							w_SEC_TIMER <= 5;
 						ELSE
-							w_SEC_TIMER <= 8 + (1 - to_integer(unsigned'('0' & i_ACUCAR)));
+							w_SEC_TIMER <= 5;
 						END IF;
 					END IF;
 					

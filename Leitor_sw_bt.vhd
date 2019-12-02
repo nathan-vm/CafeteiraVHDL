@@ -6,36 +6,49 @@ use IEEE.NUMERIC_STD.ALL; -- USANDO PRA CONVERTER HEHEHE
 
 entity Leitor_sw_bt is
 	generic(
-		p_DATA : integer := 5;
-		p_ADD : integer := 2
+				p_DATA				: integer := 5;
+				p_ADD 				: integer := 2
 	);
     Port ( 
-				-- CLOCK E RESET --
-		i_CLK:				in  STD_LOGIC;
-		i_RST:				in  STD_LOGIC;
-				-- SWITCHS E BOTAO PREPARO --
-		i_CAFE:				in STD_LOGIC; -- SWITCH
-		i_CAFE_LEITE:		in STD_LOGIC; -- SWITCH
-		i_MOCHA: 			in STD_LOGIC; -- SWITCH
-		i_TAMANHO: 			in STD_LOGIC; -- SWITCH
-		i_ACUCAR: 			in STD_LOGIC; -- SWITCH
-		i_PREPARO: 			in STD_LOGIC; -- BOTAO
-				-- "SENSORES" em processo de criacao kkkk
-		i_AGUA: 				in STD_LOGIC; -- SINAL
-		i_TEMP: 				in STD_LOGIC; -- SINAL
-				-- HANDSHAKE --
-		i_DONE:				in STD_LOGIC; --SINAL
-			-- BOTAO REPOSICAO
-		i_REPOSICAO:		in STD_LOGIC; -- BOTAO DE REPOSICAO
-		i_REPOSICAO_DONE :	in STD_LOGIC; -- SINAL DE REPOSICAO TERMINADA
-				-- SAIDAS --
-		o_CAFE:				out  STD_LOGIC; -- SINAL
-		o_CAFE_LEITE:		out  STD_LOGIC; -- SINAL
-		o_MOCHA:				out  STD_LOGIC; -- SINAL
-		o_TAMANHO:			out STD_LOGIC; -- SINAL
-		o_ACUCAR:			out STD_LOGIC; -- SINAL
-		o_PREPARO:			out STD_LOGIC; -- SINAL
-		o_REPOSICAO:		out STD_LOGIC	-- i_REPOSICAO do Led_Display
+						-- CLOCK E RESET --
+				i_CLK					: in  STD_LOGIC;
+				i_RST					: in  STD_LOGIC;
+						-- SWITCHS E BOTAO PREPARO --
+				i_CAFE				: in  STD_LOGIC; -- SWITCH	i_CAFETEIRA
+				i_CAFE_LEITE		: in  STD_LOGIC; -- SWITCH	i_CAFETEIRA
+				i_MOCHA				: in  STD_LOGIC; -- SWITCH	i_CAFETEIRA
+				i_TAMANHO			: in  STD_LOGIC; -- SWITCH	i_CAFETEIRA
+				i_ACUCAR				: in  STD_LOGIC; -- SWITCH	i_CAFETEIRA
+				i_PREPARO			: in  STD_LOGIC; -- BOTAO		i_CAFETEIRA
+						-- "SENSORES" em processo de criacao kkkk
+				i_AGUA				: in  STD_LOGIC; -- SINAL
+				i_TEMP				: in  STD_LOGIC; -- SINAL
+						-- HANDSHAKE --
+				i_DONE				: in  STD_LOGIC; -- SINAL		w_SINAL
+					-- BOTAO REPOSICAO
+				i_REPOSICAO			: in  STD_LOGIC; -- BOTAO DE REPOSICAO	i_CAFETEIRA
+				i_REPOSICAO_DONE	: in  STD_LOGIC; -- SINAL DE REPOSICAO TERMINADA	w_SINAL
+						-- SAIDAS --
+				o_CAFE				: out STD_LOGIC; -- SINAL		w_SINAL
+				o_CAFE_LEITE		: out STD_LOGIC; -- SINAL		w_SINAL	
+				o_MOCHA				: out STD_LOGIC; -- SINAL	 	w_SINAL
+				o_TAMANHO			: out STD_LOGIC; -- SINAL	 	w_SINAL
+				o_ACUCAR				: out STD_LOGIC; -- SINAL		w_SINAL
+				o_PREPARO			: out STD_LOGIC; -- SINAL		w_SINAL
+				o_REPOSICAO			: out STD_LOGIC;	-- i_REPOSICAO do Led_Display		w_SINAL
+				
+				-- TESTE COM RAM -- 
+				o_RAM_ENABLE		: out STD_LOGIC;
+				o_RAM_WRITE			: out STD_LOGIC;
+				o_DATA_WRITE		: out STD_LOGIC_VECTOR(p_DATA-1 DOWNTO 0);
+				o_ADDRESS_RAM		: out STD_LOGIC_VECTOR(p_ADD-1 DOWNTO 0);
+				o_DATA_READ			: out STD_LOGIC_VECTOR(p_DATA-1 DOWNTO 0);
+				
+				-- CAFE LEITE CHOCOLATE --
+				
+				o_qnt_CAFE			: out integer;
+				o_qnt_LEITE 		: out integer;
+				o_qnt_CHOCOLATE   : out integer	
 	 );
 end Leitor_sw_bt;
 
@@ -58,7 +71,7 @@ component RAM is
 end component;
 
 -----------------------------------------------------------------------------------------------
-	TYPE w_state_type is (st_INIT, st_IDLE, st_PREPARO,st_WAIT, st_UPDATE_MEMORIA,st_UPDATE_MEMORIA_2, st_CHECK_INGREDIENTES,st_CHECK_INGREDIENTES_2);
+	TYPE w_state_type is (st_INIT, st_IDLE, st_PREPARO,st_WAIT, st_UPDATE_MEMORIA,st_UPDATE_MEMORIA_2,st_UPDATE_MEMORIA_3, st_CHECK_INGREDIENTES,st_CHECK_INGREDIENTES_2);
 	
 	SIGNAL w_state				: w_state_type;
 	SIGNAL w_RAM_ENABLE:		 STD_LOGIC;
@@ -71,8 +84,17 @@ end component;
 	SIGNAL q_CHOCO:	INTEGER :=10;		--qntd
 	--SIGNAL q_AGUA:		INTEGER :=1500;	 mL NAO SEI SE VOU USAR
 	SIGNAL control:	STD_LOGIC :='0';		-- CONTROLE INIT
+	SIGNAL count_clock: integer:=0;			-- controle de clocks
 Begin
-	
+	-- SOMENTE PARA TB
+	o_RAM_ENABLE <= w_RAM_ENABLE;
+	o_RAM_WRITE <= w_RAM_WRITE;
+	o_DATA_WRITE <= w_DATA_WRITE;
+	o_ADDRESS_RAM <= w_ADDRESS_RAM;
+	o_DATA_READ <= w_DATA_READ;
+	o_qnt_CAFE	 <= q_CAFE;
+	o_qnt_LEITE  <= q_LEITE;
+	o_qnt_CHOCOLATE <= q_CHOCO;	
 	U1: RAM
 		port map (
 			i_CLK => i_CLK,
@@ -88,14 +110,10 @@ Begin
 			IF(i_RST = '1') THEN
 				o_PREPARO <= '0';
 				o_REPOSICAO <= '0';
---				o_CAFE<= '0';
---				o_CAFE_LEITE<= '0';
---				o_MOCHA<= '0';
---				o_TAMANHO<= '0';
---				o_ACUCAR<= '0';
+
 				w_state <= st_INIT;
 
-			ELSIF RISING_EDGE (i_CLK) THEN
+			ELSIF RISING_EDGE(i_CLK) THEN
 				CASE w_state IS
 					
 					WHEN st_INIT =>
@@ -111,6 +129,8 @@ Begin
 						control		<= '1'; --PARA O UPDATE SABER Q VEIO DO INIT
 						w_ADDRESS_RAM <= (OTHERS => '0');
 						w_DATA_WRITE <= (OTHERS => '0');
+						w_RAM_ENABLE <= '0';
+						w_RAM_WRITE <= '0';
 						
 						
 						w_state <= st_UPDATE_MEMORIA;
@@ -140,72 +160,90 @@ Begin
 						END IF;
 					-- CHECAR INGREDIENTES -----------------------------------------------
 					WHEN st_CHECK_INGREDIENTES =>
-						
-						w_RAM_ENABLE <= '1';
-						w_RAM_WRITE <= '0';
-						
-						IF(w_ADDRESS_RAM = "00") THEN
-							q_CAFE <= to_integer(unsigned(w_DATA_READ));
-							w_state <= st_CHECK_INGREDIENTES_2;
-						ELSIF (w_ADDRESS_RAM = "01") THEN
-							q_LEITE <= to_integer(unsigned(w_DATA_READ));
-							w_state <= st_CHECK_INGREDIENTES_2;
-						ELSIF(w_ADDRESS_RAM = "10") THEN
-							q_CHOCO <= to_integer(unsigned(w_DATA_READ));
-							w_state <= st_CHECK_INGREDIENTES_2;
-						ELSE
-							IF( (q_CAFE  < 2 ) or
-								 (q_LEITE < 2 ) or
-								 (q_CHOCO < 2 ) ) THEN
-								 
-								 o_REPOSICAO <= '1';
-								 w_state <= st_WAIT;
-								 
-							ELSE
-								w_ADDRESS_RAM <= "00";
-								w_RAM_ENABLE <= '0';
-								w_state <= st_UPDATE_MEMORIA;
-							END IF;	  
+						IF (count_clock = 0) THEN
+							w_RAM_ENABLE <= '1';
+							w_RAM_WRITE <= '0';
+							count_clock <= 1;
+							
+						ELSIF (count_clock = 1) THEN
+							count_clock <=2;
+							
+						ELSIF (count_clock = 2) THEN
+							w_RAM_ENABLE <= '0';
+							
+							IF(w_ADDRESS_RAM = "00") THEN
+								q_CAFE <= to_integer(unsigned(w_DATA_READ));
+								count_clock <= 3;
+								
+							ELSIF (w_ADDRESS_RAM = "01") THEN
+								q_LEITE <= to_integer(unsigned(w_DATA_READ));
+								count_clock <= 3;
+								
+							ELSIF(w_ADDRESS_RAM = "10") THEN
+								q_CHOCO <= to_integer(unsigned(w_DATA_READ));
+								count_clock <= 3;
+
+							ELSIF(w_ADDRESS_RAM = "11") THEN
+								IF( (q_CAFE  < 2 ) or
+									 (q_LEITE < 2 ) or
+									 (q_CHOCO < 2 ) ) THEN
+									 
+									 o_REPOSICAO <= '1';
+									 count_clock <= 0;
+									 w_state <= st_WAIT;
+									 
+								ELSE
+									count_clock <= 0;
+									w_ADDRESS_RAM <= "00";
+									w_RAM_ENABLE <= '0';
+									w_state <= st_UPDATE_MEMORIA;
+								END IF;	  
+							END IF;
+						ELSIF(count_clock = 3) THEN
+							w_RAM_ENABLE <= '0';
+							w_ADDRESS_RAM <= w_ADDRESS_RAM + 1;
+							count_clock <= 0;
 						END IF;
-					-- CHECAR INGREDIENTES 2 ---------------------------------------------
-					WHEN st_CHECK_INGREDIENTES_2 =>
-						w_ADDRESS_RAM <= w_ADDRESS_RAM +1;
-						w_RAM_ENABLE <= '0';
-						w_state <= st_CHECK_INGREDIENTES;
+
 					-- ATUALIZAR MEMORIA -------------------------------------------------
 					WHEN st_UPDATE_MEMORIA =>
-						w_RAM_WRITE <= '1';
+						IF(count_clock = 0) THEN
+							IF (w_ADDRESS_RAM = "00") THEN
+								w_DATA_WRITE <= std_LOGIC_VECTOR(to_unsigned(q_CAFE,w_DATA_WRITE'length));
+								count_clock <= 1;
+								
+							ELSIF (w_ADDRESS_RAM = "01") THEN
+								w_DATA_WRITE <= std_LOGIC_VECTOR(to_unsigned(q_LEITE,w_DATA_WRITE'length));
+								count_clock <= 1;
 							
-						IF (w_ADDRESS_RAM = "00") THEN
-							w_RAM_ENABLE <= '1';
-							w_DATA_WRITE <= std_LOGIC_VECTOR(to_unsigned(q_CAFE,w_data_write'length));
-							w_state <= st_UPDATE_MEMORIA_2;
+							ELSIF (w_ADDRESS_RAM = "10") THEN
+								w_DATA_WRITE <= std_LOGIC_VECTOR(to_unsigned(q_CHOCO,w_DATA_WRITE'length));
+								count_clock <= 1;
+								
+							ELSE
+								count_clock <= 0;
+								w_RAM_ENABLE <= '0';
+								w_RAM_WRITE <= '0';
+								IF(control = '1') THEN -- SE VEIO DO INIT
+									control <= '0';
+									w_state <= st_IDLE;
+								ELSIF (control = '0') THEN -- SE VEIO DO FLUXO NORMAL DA CAFETEIRA
+									w_state <= st_PREPARO;
+								END IF;
+							END IF;
 							
-						ELSIF (w_ADDRESS_RAM = "01") THEN
+						ELSIF (count_clock = 1) THEN
 							w_RAM_ENABLE <= '1';
-							w_DATA_WRITE <= std_LOGIC_VECTOR(to_unsigned(q_LEITE,w_data_write'length));
-							w_state <= st_UPDATE_MEMORIA_2;
-						
-						ELSIF (w_ADDRESS_RAM = "10") THEN
-							w_RAM_ENABLE <= '1';
-							w_DATA_WRITE <= std_LOGIC_VECTOR(to_unsigned(q_CHOCO,w_data_write'length));
-							w_state <= st_UPDATE_MEMORIA_2;
+							w_RAM_WRITE <= '1';
+							count_clock <= 2;
 							
-						ELSE
+						ELSIF (count_clock = 2) THEN
 							w_RAM_ENABLE <= '0';
 							w_RAM_WRITE <= '0';
-							IF(control = '1') THEN -- SE VEIO DO INIT
-								control <= '0';
-								w_state <= st_IDLE;
-							ELSIF (control = '0') THEN -- SE VEIO DO FLUXO NORMAL DA CAFETEIRA
-								w_state <= st_PREPARO;
-							END IF;
+							w_ADDRESS_RAM <= w_ADDRESS_RAM + 1;
+							count_clock <= 0;
+							
 						END IF;
-						-- ATUALIZAR MEMORIA 2-------------------------------------------------------------------------------
-					WHEN st_UPDATE_MEMORIA_2 =>
-						w_RAM_ENABLE <= '0';
-						w_ADDRESS_RAM <= w_ADDRESS_RAM + 1;
-						w_state <= st_UPDATE_MEMORIA;
 						-- PREPARO ------------------------------------------------------------------------------------------
 					WHEN st_PREPARO =>
 					
