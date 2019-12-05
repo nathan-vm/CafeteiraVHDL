@@ -129,14 +129,14 @@ begin
 	U_1: Leitor_sw_bt
 	Port map(
 			i_CLK					=> i_CLK,				--CAFETEIRA
-			i_RST					=> i_RST,				--CAFETEIRA
+			i_RST					=> not(i_RST),			--CAFETEIRA
 			i_CAFE				=> i_CAFE,				--CAFETEIRA
 			i_CAFE_LEITE		=> i_CAFE_LEITE,		--CAFETEIRA
 			i_MOCHA				=> i_MOCHA,				--CAFETEIRA
 			i_TAMANHO			=> i_TAMANHO,			--CAFETEIRA
 			i_ACUCAR				=> i_ACUCAR,			--CAFETEIRA
-			i_PREPARO			=> i_PREPARO,			--CAFETEIRA
-			i_REPOSICAO			=> i_REPOSICAO,		--CAFETEIRA
+			i_PREPARO			=> not(i_PREPARO),	--CAFETEIRA
+			i_REPOSICAO			=> not(i_REPOSICAO),		--CAFETEIRA
 			
 			i_AGUA				=> w_AGUA, 				--NAO IMPLEMENTADO
 			i_TEMP				=> w_TEMP, 				--NAO IMPLEMENTADO
@@ -156,7 +156,7 @@ begin
 	U_2: Led_Display
 	Port Map(
 			i_CLK					=> i_CLK,				--CAFETEIRA
-			i_RST					=> i_RST,				--CAFETEIRA
+			i_RST					=> not(i_RST),				--CAFETEIRA
 					
 			i_CAFE				=> w_CAFE,				--SINAL ENTRADA
 			i_CAFE_LEITE		=> w_CAFE_LEITE,		--SINAL ENTRADA
