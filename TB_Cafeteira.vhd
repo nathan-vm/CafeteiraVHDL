@@ -92,7 +92,14 @@ end component;
 			
 			);
 			
-	
+		-- processo reset
+		p_reset : process
+		begin
+		w_RST <= '1';
+		wait for 40 ns;
+		w_RST <= '0';
+		wait;
+		end process p_reset;
 		--processo clock
 		p_clock : process
 			begin

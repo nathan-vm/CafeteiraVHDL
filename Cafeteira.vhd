@@ -156,7 +156,7 @@ begin
 	U_2: Led_Display
 	Port Map(
 			i_CLK					=> i_CLK,				--CAFETEIRA
-			i_RST					=> i_CLK,				--CAFETEIRA
+			i_RST					=> i_RST,				--CAFETEIRA
 					
 			i_CAFE				=> w_CAFE,				--SINAL ENTRADA
 			i_CAFE_LEITE		=> w_CAFE_LEITE,		--SINAL ENTRADA
