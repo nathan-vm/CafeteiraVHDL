@@ -95,6 +95,9 @@ Begin
 	o_qnt_CAFE	 <= q_CAFE;
 	o_qnt_LEITE  <= q_LEITE;
 	o_qnt_CHOCOLATE <= q_CHOCO;	
+	
+	------------------------------
+	
 	U1: RAM
 		port map (
 			i_CLK => i_CLK,
@@ -107,9 +110,9 @@ Begin
 		);
 	U_LEITOR : PROCESS(i_CLK, i_RST)
 		BEGIN
-			IF(i_RST = '1') THEN
-				o_PREPARO <= '0';
-				o_REPOSICAO <= '0';
+			IF(i_RST = '0') THEN
+				o_PREPARO <= '1';
+				--o_REPOSICAO <= '0';
 
 				w_state <= st_INIT;
 
@@ -118,8 +121,8 @@ Begin
 					
 					WHEN st_INIT =>
 					
-						o_PREPARO <= '0'; -- nao vai preparar nada
-						o_REPOSICAO <= '0'; -- terminou a repOSICAO
+						o_PREPARO <= '1'; -- nao vai preparar nada
+						o_REPOSICAO <= '1'; -- terminou a repOSICAO
 						
 						-- QUANTIDADES REPOSTAS
 						q_CAFE		<=10;		--qntd
@@ -137,7 +140,7 @@ Begin
 					----------------------------------------------------------------------	
 					WHEN st_IDLE =>
 					
-						o_PREPARO <= '0'; -- terminou o cafe anterior
+						o_PREPARO <= '1'; -- terminou o cafe anterior
 						
 						o_CAFE <= i_CAFE;
 						o_CAFE_LEITE <= i_CAFE_LEITE; 
@@ -146,7 +149,7 @@ Begin
 						o_TAMANHO <= i_TAMANHO;
 						o_ACUCAR <= i_ACUCAR;
 						
-						IF(i_PREPARO = '1') THEN
+						IF(i_PREPARO = '0') THEN
 							IF (	(i_CAFE = '0' AND i_CAFE_LEITE = '0' AND i_MOCHA = '1') OR
 									(i_CAFE = '1' AND i_CAFE_LEITE = '0' AND i_MOCHA = '0') OR
 									(i_CAFE = '0' AND i_CAFE_LEITE = '1' AND i_MOCHA = '0') ) THEN
@@ -184,11 +187,11 @@ Begin
 								count_clock <= 3;
 
 							ELSIF(w_ADDRESS_RAM = "11") THEN
-								IF( (q_CAFE  < 2 ) or
-									 (q_LEITE < 2 ) or
-									 (q_CHOCO < 2 ) ) THEN
+								IF( (q_CAFE  < 3 ) or
+									 (q_LEITE < 3 ) or
+									 (q_CHOCO < 3 ) ) THEN
 									 
-									 o_REPOSICAO <= '1';
+									 --o_REPOSICAO <= '1';
 									 count_clock <= 0;
 									 w_state <= st_WAIT;
 									 
@@ -196,7 +199,7 @@ Begin
 									count_clock <= 0;
 									w_ADDRESS_RAM <= "00";
 									w_RAM_ENABLE <= '0';
-									w_state <= st_UPDATE_MEMORIA;
+									w_state <= st_PREPARO;
 								END IF;	  
 							END IF;
 						ELSIF(count_clock = 3) THEN
@@ -228,7 +231,7 @@ Begin
 									control <= '0';
 									w_state <= st_IDLE;
 								ELSIF (control = '0') THEN -- SE VEIO DO FLUXO NORMAL DA CAFETEIRA
-									w_state <= st_PREPARO;
+									w_state <= st_WAIT;
 								END IF;
 							END IF;
 							
@@ -247,7 +250,7 @@ Begin
 						-- PREPARO ------------------------------------------------------------------------------------------
 					WHEN st_PREPARO =>
 					
-						o_PREPARO <= '1';
+						o_PREPARO <= '0';
 					
 						IF(i_TAMANHO = '0') THEN
 						
@@ -274,10 +277,11 @@ Begin
 							END IF;
 							
 						END IF;
-						w_state <= st_WAIT;
+						w_state <= st_UPDATE_MEMORIA;
 						--ESPERANDO -------------------------------------------------------------------------------------------
 					WHEN st_WAIT =>
-						
+						o_REPOSICAO <= i_REPOSICAO;
+						o_PREPARO <= '1';
 						IF (i_DONE = '1') THEN
 							
 							w_state <= st_IDLE;

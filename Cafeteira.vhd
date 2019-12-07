@@ -25,7 +25,6 @@ entity Cafeteira is
 				o_TAMANHO			: out STD_LOGIC; -- LED
 				o_ACUCAR				: out STD_LOGIC; -- LED
 				o_PREPARO			: out STD_LOGIC; -- LED PISCANDO
-				o_TESTE				: out STD_LOGIC;
 				o_REPOSICAO			: out STD_LOGIC;	-- LED
 				o_DISPLAY_1			: out STD_LOGIC_VECTOR (7 DOWNTO 0); --DISPLAY 7 SEGMENTOS
 				o_DISPLAY_2			: out STD_LOGIC_VECTOR (7 DOWNTO 0); --DISPLAY 7 SEGMENTOS
@@ -107,36 +106,37 @@ component Led_Display is
 				o_DISPLAY_4			: out STD_LOGIC_VECTOR (7 DOWNTO 0)				
 	 );
 end component;
-		-- SINAIS --
+		-- sinais de entrada invertidos
+		signal w_i_RST				: std_LOGIC ;
+		signal w_i_PREPARO		: std_LOGIC ;
+		signal w_i_REPOSICAO		: std_LOGIC ;
 		--SAIDAS Leitor_sw_bt/ENTRADAS Led_Display
-		signal w_CAFE 				: std_LOGIC;
-		signal w_CAFE_LEITE 		: std_LOGIC;
-		signal w_MOCHA 			: std_LOGIC;
-		signal w_TAMANHO 			: std_LOGIC;
-		signal w_ACUCAR 			: std_LOGIC;
-		signal w_PREPARO 			: std_LOGIC;
+		signal w_CAFE 				: std_LOGIC; --switch
+		signal w_CAFE_LEITE 		: std_LOGIC; --switch
+		signal w_MOCHA 			: std_LOGIC; --switch
+		signal w_TAMANHO 			: std_LOGIC; --switch
+		signal w_ACUCAR 			: std_LOGIC; --switch
+		signal w_PREPARO 			: std_LOGIC; --botao
 		--HANDSHAKE--
-		signal w_DONE 				: std_LOGIC;
-		signal w_REPOSICAO_DONE : std_LOGIC;
-		signal w_REPOSICAO 		: std_LOGIC;
+		signal w_DONE 				: std_LOGIC; --sinal
+		signal w_REPOSICAO_DONE : std_LOGIC; --sinal
+		signal w_REPOSICAO 		: std_LOGIC; --sinal 
 		--NAO IMPLEMENTADO AINDA--
-		signal w_AGUA				: std_LOGIC;
-		signal w_TEMP				: std_LOGIC;
+		signal w_AGUA				: std_LOGIC; --NAO IMPLEMENTADO
+		signal w_TEMP				: std_LOGIC; --NAO IMPLEMENTADO
 begin
-
-	o_TESTE <= w_DONE;
-
+	
 	U_1: Leitor_sw_bt
 	Port map(
 			i_CLK					=> i_CLK,				--CAFETEIRA
-			i_RST					=> not(i_RST),			--CAFETEIRA
+			i_RST					=> i_RST,				--CAFETEIRA
 			i_CAFE				=> i_CAFE,				--CAFETEIRA
 			i_CAFE_LEITE		=> i_CAFE_LEITE,		--CAFETEIRA
 			i_MOCHA				=> i_MOCHA,				--CAFETEIRA
 			i_TAMANHO			=> i_TAMANHO,			--CAFETEIRA
 			i_ACUCAR				=> i_ACUCAR,			--CAFETEIRA
-			i_PREPARO			=> not(i_PREPARO),	--CAFETEIRA
-			i_REPOSICAO			=> not(i_REPOSICAO),		--CAFETEIRA
+			i_PREPARO			=> i_PREPARO,			--CAFETEIRA
+			i_REPOSICAO			=> i_REPOSICAO,		--CAFETEIRA
 			
 			i_AGUA				=> w_AGUA, 				--NAO IMPLEMENTADO
 			i_TEMP				=> w_TEMP, 				--NAO IMPLEMENTADO
@@ -156,7 +156,7 @@ begin
 	U_2: Led_Display
 	Port Map(
 			i_CLK					=> i_CLK,				--CAFETEIRA
-			i_RST					=> not(i_RST),				--CAFETEIRA
+			i_RST					=> w_i_RST,				--CAFETEIRA
 					
 			i_CAFE				=> w_CAFE,				--SINAL ENTRADA
 			i_CAFE_LEITE		=> w_CAFE_LEITE,		--SINAL ENTRADA

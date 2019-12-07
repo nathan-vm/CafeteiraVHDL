@@ -25,7 +25,7 @@ architecture Behavioral of Timer is
 		--o_SEC <= w_cont_sec;
 		U_TIMER : process (i_CLK, i_RST)
 			begin
-				if(i_RST = '1')then
+				if(i_RST = '0')then
 					w_cont <= (others => '0');
 					w_cont_sec <= 0;
 					w_DONE <= '0';
@@ -33,7 +33,7 @@ architecture Behavioral of Timer is
 					if rising_edge(i_CLK) then
 						w_cont <= w_cont+ 1;
 						
-							if(w_cont = "0000000000000000000000000000") then
+							if(w_cont = "0000000000000000000000000001") then
 								w_cont <= (others => '0');
 								w_cont_sec <= w_cont_sec +1;
 							else

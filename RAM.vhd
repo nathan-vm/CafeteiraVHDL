@@ -27,7 +27,7 @@ end RAM;
 	signal w_ADDR	:	std_LOGIC_vector (i_ADDR'range);
 	
 	begin
-		w_ADDR <= (others=>'0') when (i_RST='1') else i_ADDR;
+		w_ADDR <= (others=>'0') when (i_RST='0') else i_ADDR;
 		process(i_CLK)
 		begin
 			if rising_edge(i_CLK) then
